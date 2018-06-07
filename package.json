@@ -1,6 +1,6 @@
 {
   "name": "@stencil/router",
-  "version": "0.2.2-0",
+  "version": "0.2.2-1",
   "description": "Stencil Router",
   "module": "dist/collection/index.js",
   "main": "dist/index.js",
@@ -23,7 +23,7 @@
     "url": "git+https://github.com/ionic-team/stencil-router.git"
   },
   "dependencies": {
-    "@stencil/state-tunnel": "0.0.6"
+    "@stencil/state-tunnel": "0.0.7"
   },
   "devDependencies": {
     "@stencil/core": "^0.9.6",
