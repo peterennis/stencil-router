@@ -1,5 +1,6 @@
 import pathToRegexp, { Key } from './path-to-regex';
 import { MatchOptions, MatchResults } from '../global/interfaces';
+import { valueEqual } from './location-utils';
 
 interface CompileOptions {
   end: boolean;
@@ -64,4 +65,19 @@ export function matchPath(pathname: string, options: MatchOptions = {}): null | 
       return memo;
     }, {} as {[key: string]: string})
   };
+}
+
+export function matchesAreEqual(a: MatchResults, b: MatchResults) {
+  if (a == null && b == null) {
+    return true;
+  }
+
+  if (b == null) {
+    return false;
+  }
+
+  return a && b &&
+    a.path === b.path &&
+    a.url === b.url &&
+    valueEqual(a.params, b.params);
 }

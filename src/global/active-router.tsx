@@ -1,20 +1,21 @@
 import { createProviderConsumer } from '@stencil/state-tunnel';
-import { LocationSegments, RouterHistory } from './interfaces';
+import { LocationSegments, RouterHistory, RouteViewOptions, HistoryType } from './interfaces';
+
 
 export interface ActiveRouterState {
+  historyType: HistoryType;
   location: LocationSegments;
   titleSuffix: string;
   root: string;
   history: RouterHistory;
-  subscribeGroupMember: any;
-  createSubscriptionGroup: (groupId: string, groupSize: number) => void;
+  routeViewsUpdated: (options: RouteViewOptions) => void;
 }
 
 export default createProviderConsumer<ActiveRouterState>({
+  historyType: 'browser',
   location: null,
   titleSuffix: '',
   root: '/',
   history: null,
-  subscribeGroupMember: () => {},
-  createSubscriptionGroup: () => {}
+  routeViewsUpdated: () => {}
 });

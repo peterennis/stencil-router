@@ -1,7 +1,6 @@
 import { Component, Prop, State, Element, Watch } from '@stencil/core';
-import { matchPath } from '../../utils/match-path';
-import { RouterHistory, Listener, LocationSegments, MatchResults, RouteSubscription } from '../../global/interfaces';
-import { QueueApi } from '@stencil/core/dist/declarations';
+import { matchPath, matchesAreEqual } from '../../utils/match-path';
+import { RouterHistory, Listener, LocationSegments, MatchResults, RouteViewOptions, HistoryType } from '../../global/interfaces';
 import ActiveRouter from '../../global/active-router';
 
 /**
@@ -14,8 +13,10 @@ import ActiveRouter from '../../global/active-router';
   styleUrl: 'route.css'
 })
 export class Route {
-  @Prop({ context: 'queue'}) queue: QueueApi;
-  @Prop({ context: 'isServer' }) private isServer: boolean;
+  @Prop() group: string | null = null;
+  @Prop() groupMatch: MatchResults | null = null;
+  @Prop() componentUpdated: (options: RouteViewOptions) => void = null;
+  @State() match: MatchResults | null = null;
 
   unsubscribe: Listener = () => { return; };
 
@@ -23,127 +24,72 @@ export class Route {
   @Prop() component: string;
   @Prop() componentProps: { [key: string]: any } = {};
   @Prop() exact: boolean = false;
-  @Prop() group: string = null;
-  @Prop() groupIndex: number = null;
   @Prop() routeRender: Function = null;
   @Prop() scrollTopOffset: number = null;
+  @Prop() routeViewsUpdated: (options: RouteViewOptions) => void;
 
   @Prop() location: LocationSegments;
   @Prop() history: RouterHistory;
-  @Prop() subscribeGroupMember: (routeSubscription: RouteSubscription) => () => void
+  @Prop() historyType: HistoryType;
 
-  @State() match: MatchResults | null = null;
-  @State() activeInGroup: boolean = false;
 
-  @Element() el: HTMLStencilElement;
+  @Element() el: HTMLStencilRouteElement;
 
   componentDidRerender: Function | undefined;
   scrollOnNextRender: boolean = false;
-
-  componentWillLoad() {
-    this.joinGroup();
-  }
+  previousMatch: MatchResults = null;
 
   // Identify if the current route is a match.
   @Watch('location')
   computeMatch() {
+    this.previousMatch = this.match;
+
     if (!this.group) {
-      this.match = this.getMatch(this.location.pathname);
+      return this.match = matchPath(this.location.pathname, {
+        path: this.url,
+        exact: this.exact,
+        strict: true
+      });
     }
-  }
 
-  getMatch(pathname: string) {
-    return matchPath(pathname, {
-      path: this.url,
-      exact: this.exact,
-      strict: true
-    });
-  }
-
-  @Watch('group')
-  joinGroup() {
-    const thisRoute = this;
-    // subscribe the project's active router and listen
-    // for changes. Recompute the match if any updates get
-    // pushed
-
-    if (this.group) {
-      const listener = (matchResults: MatchResults) => {
-        this.match = matchResults;
-        return new Promise((resolve) => {
-          thisRoute.componentDidRerender = resolve;
-        });
-      }
-
-      this.unsubscribe = this.subscribeGroupMember({
-        isMatch: this.getMatch.bind(this),
-        listener,
-        groupId: this.group,
-        groupIndex: this.groupIndex
+    // If this already matched then lets check if it still matches the
+    // updated location.
+    if (this.groupMatch) {
+      return this.match = matchPath(this.location.pathname, {
+        path: this.url,
+        exact: this.exact,
+        strict: true
       });
     }
   }
 
-  componentDidUnload() {
-    if (this.unsubscribe) {
-      // be sure to unsubscribe to the router so that we don't
-      // get any memory leaks
-      this.unsubscribe();
-    }
-  }
 
   componentDidUpdate() {
-    if (this.match && this.componentDidRerender) {
-      // After route component has rendered then check if its child has.
-      const childElement = this.el.firstElementChild as HTMLStencilElement;
-      if (childElement && childElement.componentOnReady) {
-
-        childElement.componentOnReady().then(() => {
-          if (this.componentDidRerender) {
-            this.componentDidRerender();
-          }
-          this.componentDidRerender = undefined;
-          this.activeInGroup = !!this.match;
-          this.scrollOnNextRender = this.activeInGroup;
-        });
-      } else {
-        // If there is no child then resolve the Promise immediately
-        this.componentDidRerender();
-        this.componentDidRerender = undefined;
-        this.activeInGroup = !!this.match;
-        this.scrollOnNextRender = this.activeInGroup;
-      }
-
-    } else if (this.match && this.scrollOnNextRender) {
-      // If this is the new active route in a group and it is now active then scroll
-      this.scrollTo();
-      this.scrollOnNextRender = false;
-    }
-  }
-
-  scrollTo() {
-    if (this.scrollTopOffset == null || !this.history || this.isServer) {
-      return;
-    }
-    if (this.history.action === 'POP' && this.history.location.scrollPosition != null) {
-      return this.queue.write(() => {
-        window.scrollTo(this.history.location.scrollPosition[0], this.history.location.scrollPosition[1]);
-      });
-    }
-    // okay, the frame has passed. Go ahead and render now
-    return this.queue.write(() => {
-      window.scrollTo(0, this.scrollTopOffset);
-    });
-  }
-
-  hostData() {
-    if (!this.match || (this.group && !this.activeInGroup)) {
-      return {
-        style: {
-          display: 'none'
+    // Wait for all children to complete rendering before calling componentUpdated
+    Promise.all(
+      Array.from(this.el.children).map((element:HTMLStencilElement) => {
+        if (element.componentOnReady) {
+          return element.componentOnReady();
         }
-      };
-    }
+        return Promise.resolve(element);
+      })
+    )
+    .then(() => {
+      // After all children have completed then tell switch
+      // the provided callback will get executed after this route is in view
+      if (typeof this.componentUpdated === 'function') {
+        this.componentUpdated({
+          scrollTopOffset: this.scrollTopOffset
+        });
+
+      // If this is an independent route and it matches then routes have updated.
+      // If the only change to location is a hash change then do not scroll.
+      } else if (this.match && !matchesAreEqual(this.match, this.previousMatch)) {
+        this.routeViewsUpdated({
+          scrollTopOffset: this.scrollTopOffset
+        });
+      }
+    });
   }
 
   render() {
@@ -184,5 +130,6 @@ export class Route {
 ActiveRouter.injectProps(Route, [
   'location',
   'history',
-  'subscribeGroupMember'
+  'historyType',
+  'routeViewsUpdated'
 ]);

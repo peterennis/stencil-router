@@ -3,16 +3,15 @@ export interface ActiveRouter {
   dispatch: (location: LocationSegments, nextListeners: RouteSubscription[]) => void;
 }
 
-export interface RouteSubscription {
-  isMatch: (pathname: string) => MatchResults;
-  listener: (results: MatchResults) => void | Promise<any>;
-  lastMatch?: MatchResults;
-  groupId?: string;
-  groupIndex?: number;
+
+export interface RouteViewOptions {
+  scrollTopOffset?: number
 }
 
-export interface Route {
-
+export interface RouteSubscription {
+  isMatch: boolean;
+  groupId?: string;
+  groupIndex?: number;
 }
 
 export type HistoryType = 'browser' | 'hash';
@@ -28,6 +27,8 @@ export interface LocationSegments {
   query?: { [key: string]: any };
   scrollPosition?: [number, number];
 }
+
+export type LocationSegmentPart = 'pathname' | 'search' | 'hash' | 'state' | 'key';
 
 export interface RouterHistory {
   length: number;
