@@ -1,6 +1,5 @@
 import { Component } from '@stencil/core';
 
-
 const PrivateRoute = ({ component, ...props}: { [key: string]: any}) => (
   <stencil-route {...props} routeRender={
     (props: { [key: string]: any}) => {
@@ -15,9 +14,9 @@ const PrivateRoute = ({ component, ...props}: { [key: string]: any}) => (
 
 
 @Component({
-  tag: 'test-app'
+  tag: 'router-demo-app'
 })
-export class TestApp {
+export class RouterDemoApp {
 
   render() {
     return (
