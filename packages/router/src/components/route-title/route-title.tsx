@@ -1,4 +1,4 @@
-import { Component, Prop, Element } from '@stencil/core';
+import { Component, Prop, Element, ComponentInterface } from '@stencil/core';
 import ActiveRouter from '../../global/active-router';
 
 /**
@@ -10,13 +10,13 @@ import ActiveRouter from '../../global/active-router';
 @Component({
   tag: 'stencil-route-title'
 })
-export class RouteTitle {
-  @Element() el: HTMLStencilElement;
+export class RouteTitle implements ComponentInterface {
+  @Element() el!: HTMLStencilElement;
   @Prop() titleSuffix: string = '';
-  @Prop() title: string = '';
+  @Prop() pageTitle: string = '';
 
   componentWillLoad() {
-    document.title = `${this.title}${this.titleSuffix || ''}`;
+    document.title = `${this.pageTitle}${this.titleSuffix || ''}`;
   }
 }
 

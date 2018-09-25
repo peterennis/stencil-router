@@ -7,7 +7,6 @@
 import '@stencil/core';
 
 import '@stencil/router';
-import '@stencil/state-tunnel';
 import {
   LocationSegments,
   MatchResults,
@@ -21,8 +20,8 @@ export namespace Components {
   interface RouterDemoAppAttributes extends StencilHTMLAttributes {}
 
   interface TestDeepComponent {
-    'history': RouterHistory;
-    'location': LocationSegments;
+    'history'?: RouterHistory;
+    'location'?: LocationSegments;
   }
   interface TestDeepComponentAttributes extends StencilHTMLAttributes {
     'history'?: RouterHistory;
@@ -30,20 +29,20 @@ export namespace Components {
   }
 
   interface TestDemoFour {
-    'history': RouterHistory;
-    'match': MatchResults;
+    'history'?: RouterHistory;
+    'match': MatchResults | null;
     'pages': string[];
   }
   interface TestDemoFourAttributes extends StencilHTMLAttributes {
     'history'?: RouterHistory;
-    'match'?: MatchResults;
+    'match'?: MatchResults | null;
     'pages'?: string[];
   }
 
   interface TestDemoSeven {
-    'history': RouterHistory;
-    'match': MatchResults;
-    'pages': string[];
+    'history'?: RouterHistory;
+    'match'?: MatchResults;
+    'pages'?: string[];
   }
   interface TestDemoSevenAttributes extends StencilHTMLAttributes {
     'history'?: RouterHistory;
@@ -52,24 +51,35 @@ export namespace Components {
   }
 
   interface TestDemoSix {
-    'history': RouterHistory;
-    'match': MatchResults;
-    'pages': string[];
+    'history'?: RouterHistory;
+    'match': MatchResults | null;
+    'pages'?: string[];
   }
   interface TestDemoSixAttributes extends StencilHTMLAttributes {
     'history'?: RouterHistory;
-    'match'?: MatchResults;
+    'match'?: MatchResults | null;
     'pages'?: string[];
   }
 
   interface TestDemoThree {
-    'history': RouterHistory;
-    'match': MatchResults;
-    'pages': string[];
+    'history'?: RouterHistory;
+    'match': MatchResults | null;
+    'pages'?: string[];
   }
   interface TestDemoThreeAttributes extends StencilHTMLAttributes {
     'history'?: RouterHistory;
-    'match'?: MatchResults;
+    'match'?: MatchResults | null;
+    'pages'?: string[];
+  }
+
+  interface TestRouteGuard {
+    'history'?: RouterHistory;
+    'match': MatchResults | null;
+    'pages'?: string[];
+  }
+  interface TestRouteGuardAttributes extends StencilHTMLAttributes {
+    'history'?: RouterHistory;
+    'match'?: MatchResults | null;
     'pages'?: string[];
   }
 }
@@ -82,6 +92,7 @@ declare global {
     'TestDemoSeven': Components.TestDemoSeven;
     'TestDemoSix': Components.TestDemoSix;
     'TestDemoThree': Components.TestDemoThree;
+    'TestRouteGuard': Components.TestRouteGuard;
   }
 
   interface StencilIntrinsicElements {
@@ -91,6 +102,7 @@ declare global {
     'test-demo-seven': Components.TestDemoSevenAttributes;
     'test-demo-six': Components.TestDemoSixAttributes;
     'test-demo-three': Components.TestDemoThreeAttributes;
+    'test-route-guard': Components.TestRouteGuardAttributes;
   }
 
 
@@ -130,6 +142,12 @@ declare global {
     new (): HTMLTestDemoThreeElement;
   };
 
+  interface HTMLTestRouteGuardElement extends Components.TestRouteGuard, HTMLStencilElement {}
+  var HTMLTestRouteGuardElement: {
+    prototype: HTMLTestRouteGuardElement;
+    new (): HTMLTestRouteGuardElement;
+  };
+
   interface HTMLElementTagNameMap {
     'router-demo-app': HTMLRouterDemoAppElement
     'test-deep-component': HTMLTestDeepComponentElement
@@ -137,6 +155,7 @@ declare global {
     'test-demo-seven': HTMLTestDemoSevenElement
     'test-demo-six': HTMLTestDemoSixElement
     'test-demo-three': HTMLTestDemoThreeElement
+    'test-route-guard': HTMLTestRouteGuardElement
   }
 
   interface ElementTagNameMap {
@@ -146,6 +165,7 @@ declare global {
     'test-demo-seven': HTMLTestDemoSevenElement;
     'test-demo-six': HTMLTestDemoSixElement;
     'test-demo-three': HTMLTestDemoThreeElement;
+    'test-route-guard': HTMLTestRouteGuardElement;
   }
 
 

@@ -1,8 +1,17 @@
-import { Component, Prop, State, Watch, Element } from '@stencil/core';
+import { Component, Prop, State, Watch, Element, ComponentInterface } from '@stencil/core';
 import { matchPath } from '../../utils/match-path';
 import { isModifiedEvent } from '../../utils/dom-utils';
 import { RouterHistory, Listener, LocationSegments, MatchResults } from '../../global/interfaces';
 import ActiveRouter from '../../global/active-router';
+
+function getUrl(url: string, root: string) {
+
+  // Don't allow double slashes
+  if(url.charAt(0) == '/' && root.charAt(root.length - 1) == '/') {
+    return root.slice(0, root.length-1) + url;
+  }
+  return root + url;
+}
 
 /**
   * @name Route
@@ -12,13 +21,13 @@ import ActiveRouter from '../../global/active-router';
 @Component({
   tag: 'stencil-route-link'
 })
-export class RouteLink {
-  @Element() el: HTMLStencilElement;
+export class RouteLink implements ComponentInterface {
+  @Element() el!: HTMLStencilElement;
 
   unsubscribe: Listener = () => { return; };
 
-  @Prop() url: string;
-  @Prop() urlMatch: string | string[];
+  @Prop() url?: string;
+  @Prop() urlMatch?: string | string[];
   @Prop() activeClass: string = 'link-active';
   @Prop() exact: boolean = false;
   @Prop() strict: boolean = true;
@@ -28,23 +37,23 @@ export class RouteLink {
    */
   @Prop() custom: string = 'a';
 
-  @Prop() anchorClass: string;
-  @Prop() anchorRole: string;
-  @Prop() anchorTitle: string;
-  @Prop() anchorTabIndex: string;
+  @Prop() anchorClass?: string;
+  @Prop() anchorRole?: string;
+  @Prop() anchorTitle?: string;
+  @Prop() anchorTabIndex?: string;
+  @Prop() anchorId?: string;
 
-  @Prop() history: RouterHistory;
-  @Prop() location: LocationSegments;
-  @Prop() root: string;
-  
-  @Prop() ariaHaspopup: string;
-  @Prop() id: string;
-  @Prop() ariaPosinset: string;
-  @Prop() ariaSetsize: number;
-  @Prop() ariaLabel: string;
+  @Prop() history?: RouterHistory;
+  @Prop() location?: LocationSegments;
+  @Prop() root?: string;
+
+  @Prop() ariaHaspopup?: string;
+  @Prop() ariaPosinset?: string;
+  @Prop() ariaSetsize?: number;
+  @Prop() ariaLabel?: string;
 
   @State() match: MatchResults | null = null;
-  
+
 
   componentWillLoad() {
     this.computeMatch();
@@ -63,24 +72,15 @@ export class RouteLink {
   }
 
   handleClick(e: MouseEvent) {
-    if (isModifiedEvent(e)) {
+    if (isModifiedEvent(e) || !this.history || !this.url || !this.root) {
       return;
     }
 
     e.preventDefault();
-    return this.history.push(this.getUrl(this.url));
+    return this.history.push(getUrl(this.url, this.root));
   }
 
   // Get the URL for this route link without the root from the router
-  getUrl(url: string) {
-
-    // Don't allow double slashes
-    if(url.charAt(0) == '/' && this.root.charAt(this.root.length - 1) == '/') {
-      return this.root.slice(0, this.root.length-1) + url;
-    }
-    return this.root + url;
-  }
-
   render() {
     let anchorAttributes: { [key: string]: any} = {
       class: {
@@ -101,7 +101,7 @@ export class RouteLink {
         role: this.anchorRole,
         tabindex: this.anchorTabIndex,
         'aria-haspopup': this.ariaHaspopup,
-        id: this.id,
+        id: this.anchorId,
         'aria-posinset': this.ariaPosinset,
         'aria-setsize': this.ariaSetsize,
         'aria-label': this.ariaLabel

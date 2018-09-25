@@ -1,7 +1,7 @@
 // Adapted from the https://github.com/ReactTraining/history and converted to TypeScript
 
-import { createLocation, locationsAreEqual } from './location-utils';
-import { RouterHistory, LocationSegments } from '../global/interfaces';
+import { createLocation, locationsAreEqual, createKey } from './location-utils';
+import { RouterHistory, LocationSegments, Prompt } from '../global/interfaces';
 import { invariant, warning } from './log';
 import {
   addLeadingSlash,
@@ -24,6 +24,7 @@ export interface CreateHashHistoryOptions {
   getUserConfirmation?: (message: string, callback: (confirmed: boolean) => {}) => {};
   hashType?: 'hashbang' | 'noslash' | 'slash';
   basename?: string;
+  keyLength?: number;
 }
 
 const HashChangeEvent = 'hashchange';
@@ -70,6 +71,7 @@ const createHashHistory = (props: CreateHashHistoryOptions = {}): RouterHistory 
 
   const globalHistory = window.history;
   const canGoWithoutReload = supportsGoWithoutReloadUsingHash();
+  const keyLength = (props.keyLength != null) ? props.keyLength : 6;
 
   const {
     getUserConfirmation = getConfirmation,
@@ -92,7 +94,7 @@ const createHashHistory = (props: CreateHashHistoryOptions = {}): RouterHistory 
       path = stripBasename(path, basename);
     }
 
-    return createLocation(path);
+    return createLocation(path, undefined, createKey(keyLength));
   };
 
   const transitionManager = createTransitionManager();
@@ -204,7 +206,7 @@ const createHashHistory = (props: CreateHashHistoryOptions = {}): RouterHistory 
     );
 
     const action = 'PUSH';
-    const location = createLocation(path, undefined, undefined, history.location);
+    const location = createLocation(path, undefined, createKey(keyLength), history.location);
 
     transitionManager.confirmTransitionTo(location, action, getUserConfirmation, (ok: boolean) => {
       if (!ok) {
@@ -247,7 +249,7 @@ const createHashHistory = (props: CreateHashHistoryOptions = {}): RouterHistory 
     );
 
     const action = 'REPLACE';
-    const location = createLocation(path, undefined, undefined, history.location);
+    const location = createLocation(path, undefined, createKey(keyLength), history.location);
 
     transitionManager.confirmTransitionTo(location, action, getUserConfirmation, (ok: boolean) => {
       if (!ok) {
@@ -303,7 +305,7 @@ const createHashHistory = (props: CreateHashHistoryOptions = {}): RouterHistory 
 
   let isBlocked = false;
 
-  const block = (prompt = '') => {
+  const block = (prompt: string | Prompt = '') => {
     const unblock = transitionManager.setPrompt(prompt);
 
     if (!isBlocked) {

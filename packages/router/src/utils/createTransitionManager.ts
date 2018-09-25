@@ -1,14 +1,13 @@
 // Adapted from the https://github.com/ReactTraining/history and converted to TypeScript
 
 import { warning } from './log';
-import { LocationSegments } from '../global/interfaces';
+import { LocationSegments, Prompt } from '../global/interfaces';
 
-export type Prompt = (location: LocationSegments, action: string) => string;
 
 const createTransitionManager = () => {
-  let prompt: Prompt | string;
+  let prompt: Prompt | string | null;
 
-  const setPrompt = (nextPrompt?: Prompt | string) => {
+  const setPrompt = (nextPrompt: Prompt | string | null) => {
     warning(
       prompt == null,
       'A history supports only one prompt at a time'
